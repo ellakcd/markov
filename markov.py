@@ -1,6 +1,7 @@
 """Generate Markov text from text files."""
 
 from random import choice
+from sys import argv
 
 
 def open_and_read_file(file_path):
@@ -9,8 +10,13 @@ def open_and_read_file(file_path):
     Takes a string that is a file path, opens the file, and turns
     the file's contents as one string of text.
     """
+    big_list_of_words = []
+    for file1 in file_path:
+        big_list_of_words.append(open(file1).read())
+    # print big_list_of_words
+    document = " ".join(big_list_of_words)
 
-    document = open(file_path).read()
+    # document = open(file_path).read()
 
     return document
 
@@ -43,18 +49,24 @@ def make_chains(text_string):
 
     words = text_string.split()
     chains = {}
-    # word3 = []
+    user_ngram = int(raw_input("How long would you like your n-gram to be?"))
 
 
-    for word_index in range(0,len(words)-2):
-        word1 = words[word_index]
-        word2 = words[word_index + 1]
-        word3 = words[word_index + 2]
+    for word_index in range(0,len(words)-user_ngram):
+        words_list = []
+        counter = 0
+        while counter < user_ngram:
+            word = words[word_index + counter]
+            words_list.append(word)
+            counter += 1
+        word_tuple = tuple(words_list)
+        value = words[word_index + user_ngram]
+    
 
-        if (word1, word2) in chains:
-            chains[(word1, word2)].append(word3)
+        if (word_tuple) in chains:
+            chains[(word_tuple)].append(value)
         else:
-            chains[(word1, word2)] = [word3]
+            chains[(word_tuple)] = [value]
 
     return chains
 
@@ -63,28 +75,42 @@ def make_text(chains):
     """Return text from chains."""
 
     words = []
-    #for random_key in chains: #chains is our dictionary
-    # print chains.keys()
-    key = choice(chains.keys())
-    words.append(key[0])
-    words.append(key[1])
+    # key = None
+    # #for random_key in chains: #chains is our dictionary
+    # # print chains.keys()
+    # while True: 
+    #     key = (choice(chains.keys()))
+    #     if key[0].capitalize() == key[0]:
+    #         for i in range(0, len(key)):
+    #             words.append(key[i])
+    #         break
+
+    key = (choice(chains.keys()))
+    for i in range(0, len(key)):
+        words.append(key[i])
+   
+
     
     while True:
         value_options = chains[key]
         next_word = choice(value_options)
         words.append(next_word)
-        key = (key[1], next_word)
+        key = list(key)
+        key = key[1:] + [next_word]
+        key = tuple(key)
         if key not in chains.keys():
             break
 
-
+    words[0] = words[0].capitalize()
     return " ".join(words)
 
 
-input_path = "green-eggs.txt"
+input_path = argv[1:] #input all files except first one
+
 
 # Open the file and turn it into one long string
 input_text = open_and_read_file(input_path)
+
 
 # Get a Markov chain
 chains = make_chains(input_text)
